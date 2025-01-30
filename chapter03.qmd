@@ -1,0 +1,164 @@
+---
+title: "class03"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+## Setup
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(here)
+library(dplyr)
+```
+
+## Exercise 01
+
+1.  Use `mutate()` and `case_when()` to add a new variable called `speed_cat` to `cars` where the values are `"slow"` when `speed < 10`, `"moderate"` when `speed < 20`, and `"fast"` otherwise.
+
+```{r}
+
+cars <- cars |> 
+  mutate(speed_cat = case_when(
+        speed < 10 ~  "slow",
+        speed < 20 ~ "moderate",
+        speed >= 20 ~  "fast")
+        )
+
+cars <- cars |> 
+  mutate(speed_cat = case_when(
+        speed < 10 ~  "slow",
+        speed < 20 ~ "moderate",
+        .default = "fast")
+        )
+
+cars <- cars |> 
+  mutate(speed_cat = case_when(
+        speed < 10 ~  "slow",
+        speed < 20 ~ "moderate",
+        TRUE ~ "fast")
+        )
+```
+
+## Exercise 02
+
+The [IRS Statistics of Income Division](https://www.irs.gov/statistics/soi-tax-stats-statistics-of-income) is one of the US’s 13 principal statistical agencies. They publish rich information derived from tax returns. We will focus on Table 1, [Adjusted Gross Income (AGI) percentiles by state](https://www.irs.gov/statistics/soi-tax-stats-adjusted-gross-income-agi-percentile-data-by-state).
+
+1.  Read in the 52 cells in the first column that contain “United States”, all 50 states, and the “District of Columbia”.
+
+2.  Identify the cells containing data for “Adjusted gross income floor on percentiles”. Read in the data with `read_excel()`. Either programmatically read in the column names (i.e. “Top 1 Percent”, …) or assign them with `col_names()`.
+
+3.  Use `bind_cols()` to combine the data from step 1 and step 2.
+
+```{r}
+#| echo: false
+
+# Part 1
+states <- read_excel("21in01stateshares.xlsx",
+                     range = "A8:A58",
+                     col_names = "state"
+)
+
+top_1_pct <- read_excel("21in01stateshares.xlsx",
+                     range = "J8:J58",
+                     col_names = "Top 1 percent"
+)
+
+top_5_pct <- read_excel("21in01stateshares.xlsx",
+                     range = "K8:K58",
+                     col_names = "Top 5 percent"
+)
+
+top_10_pct <- read_excel("21in01stateshares.xlsx",
+                     range = "L8:L58",
+                     col_names = "Top 10 percent"
+)
+
+top_25_pct <- read_excel("21in01stateshares.xlsx",
+                     range = "M8:M58",
+                     col_names = "Top 25 percent"
+)
+
+top_50_pct <- read_excel("21in01stateshares.xlsx",
+                     range = "N8:N58",
+                     col_names = "Top 50 percent"
+)
+
+top_75_pct <- read_excel("21in01stateshares.xlsx",
+                     range = "O8:O58",
+                     col_names = "Top 75 percent"
+)
+
+gross <- read_excel("21in01stateshares.xlsx",
+                     range = "J8:O58",
+                     col_names = c("top_1", "top_5", "top_10", "top_25", "top_50", "top_75")
+)
+
+tax <- bind_cols(states, gross)
+                     
+
+tax_long <- pivot_longer(
+  data = tax,
+  cols = c("top_1", "top_5", "top_10", "top_25", "top_50", "top_75"),
+  names_to = "percentile",
+  values_to = "agi"
+)                
+
+slice_max(tax_long, agi)
+slice_min(tax_long, agi)
+
+tax_long <- tax_long |>
+  filter(state %in% c("District of Columbia", "Mississippi")) %>%
+  ggplot(aes(x = percentile, y = agi, color = state)) +
+  geom_point()
+
+print(tax_long)
+
+
+```
+
+### Session 03
+
+#### Exercise 5
+
+```{r}
+# Exercise 5 of Chapter 3
+
+# Load library
+library(lubridate)
+
+# Create the dataframe
+dates <- tribble(
+  ~date,
+  "12/01/1987",
+  "12/02/1987",
+  "12/03/1987"
+)
+
+# Mutate the date format based on mdy but always check documentation 
+dates <- dates %>%
+  mutate(date = mdy(date))
+
+# Print the formatted date dataframe
+print(dates)
+```
+
+#### Exercise 6
+
+```{r}
+
+# Exercise 6.1
+dob <- as_date("1994-05-07")
+
+# Exercise 6.2
+days <- today() - dob
+print(days)
+
+# Exercise 6.3 
+birthdays <- dob + years(0:120)
+print(birthdays)
+
+```
